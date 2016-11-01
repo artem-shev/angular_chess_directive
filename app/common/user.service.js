@@ -1,3 +1,6 @@
+//currently return 2 player objects
+//in future will return constructor function 
+
 (function () {
 	'use strict';
 
@@ -6,11 +9,20 @@
 
 		function userService() {
 			var service = {
-				constructor: User
+				constructor: User,
+				player1: {
+					isBlack: false,
+					figures: []
+				},
+				player2: {
+					isBlack: true,
+					figures: []
+				},
 			};
 
-			return service;
 
 			function User () {}
+			
+			return service;
 		}
 })();
