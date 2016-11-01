@@ -1,0 +1,11 @@
+<div>
+	<div ng-repeat="row in ctrl.board.rows" class="row">
+		<div ng-repeat="cell in row.cells" class="cell" ng-class="{'black-cell': cell.black}" ng-click="ctrl.selectCell($event, cell)">
+			<img ng-if="cell.figure" ng-src="{{cell.figure.img}}" alt="" class="figure">
+			
+			<div ng-if="cell.rowName" class="row-name">{{cell.rowName}}</div>
+			<div ng-if="cell.collName" class="coll-name">{{cell.collName}}</div>
+			<div ng-if="cell.isSelected" class="selected"></div>
+		</div>			
+	</div>	
+</div>	
