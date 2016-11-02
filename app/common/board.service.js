@@ -8,7 +8,6 @@
 				constructor: Board
 			};
 
-
 			function Board (rows, colls, player1, player2) {
 				var self = this;
 			//variables
@@ -21,6 +20,7 @@
 						colls: chars.slice(0, colls)
 					};
 			//properties of board
+				self.whiteTurn = true;
 				self.player1 = player1;
 				self.player2 = player2;
 				self.figures = _.concat(self.player1.figures, self.player2.figures);
@@ -28,7 +28,6 @@
 				self.deadFigures = [];
 
 				activate();
-
 
 				function activate () {
 					buildRows();
@@ -106,7 +105,6 @@
 						throw new Error('unexpected number of collumns');
 					}
 				}
-
 			}
 
 			Board.prototype.bindFigures = function() {
@@ -142,25 +140,21 @@
 					finishCell: _.find(self.cells, selectedCells.dest),
 					dest: selectedCells.dest,
 					availableMove: _.find(self.availableMoves, selectedCells)
-				}
+				};
 
-				if (!validation.availableMove) {
-					console.log('not valide move');
-					return false;
+				//check which player shall make move
+				if ((validation.startCell.figure.isBlack && self.whiteTurn) || (!validation.startCell.figure.isBlack && !self.whiteTurn)) {return;}
+
+				if (!validation.availableMove) {return;} 
+
+				if (!validation.finishCell.figure && validation.availableMove.dest.basic) {
+					return validation;
+				} else if (validation.finishCell.figure && validation.availableMove.dest.kill && (validation.finishCell.figure.isBlack != validation.startCell.figure.isBlack)) {
+					validation.killMove = true;
+					return validation;
 				} else {
-					if (!validation.finishCell.figure && validation.availableMove.dest.basic) {
-						// console.log('dest is free');
-						return validation;
-					} else if (validation.finishCell.figure && validation.availableMove.dest.kill && (validation.finishCell.figure.isBlack != validation.startCell.figure.isBlack)) {
-						// console.log('U can kill him');
-						validation.killMove = true;
-						return validation;
-					} else {
-						// console.log('not today');
-						return false;
-					}
+					return;
 				}
-					
 			};
 
 			Board.prototype.makeMove = function(validation) {
@@ -181,9 +175,10 @@
 
 					self.bindFigures();
 					self.getAvailableMoves(self.cells);
+					self.whiteTurn = !self.whiteTurn;
 				}
 			};
-			
+
 			return service;
 		}
 })();
