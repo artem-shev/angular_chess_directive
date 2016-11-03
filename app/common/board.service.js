@@ -21,8 +21,8 @@
 					};
 			//properties of board
 				self.whiteTurn = true;
-				self.player1 = player1;
-				self.player2 = player2;
+				self.player1 = player1 || {};
+				self.player2 = player2 || {};
 				self.figures = _.concat(self.player1.figures, self.player2.figures);
 				self.movesLog = [];
 				self.deadFigures = [];
@@ -33,8 +33,10 @@
 					buildRows();
 					buildCells();
 					getCellsArr(); //get single array of all cells	
-					self.bindFigures(); //set binding between cell and figure
-					self.getAvailableMoves(self.cells); 
+					if (self.figures[0]) {
+						self.bindFigures(); //set binding between cell and figure
+						self.getAvailableMoves(self.cells); 
+					}
 				}
 
 				function getCharArr (charStart, charLast) {
@@ -133,6 +135,34 @@
 				self.figures.splice(index, 1);
 			};
 
+			Board.prototype.start = function () {
+				var self = this;
+				self.player1.defaultStart();
+				self.player2.defaultStart();
+				self.figures = _.concat(self.player1.figures, self.player2.figures);
+				self.bindFigures();
+				self.getAvailableMoves(self.cells);
+			};
+
+			Board.prototype.restart = function () {
+				var self = this;
+				self.cells.forEach(function (item) {
+					if (item.figure) {
+						delete item.figure;
+					}
+				});
+
+				self.player1.restart();
+				self.player2.restart();
+				
+				self.whiteTurn = true;
+				self.movesLog = [];
+				self.deadFigures = [];
+				self.figures = _.concat(self.player1.figures, self.player2.figures);
+				self.bindFigures();
+				self.getAvailableMoves(self.cells);
+			};
+
 			Board.prototype.validateMove = function (selectedCells) {
 				var self = this;
 				var validation = {
@@ -147,14 +177,14 @@
 
 				if (!validation.availableMove) {return;} 
 
-				if (!validation.finishCell.figure && validation.availableMove.dest.basic) {
-					return validation;
-				} else if (validation.finishCell.figure && validation.availableMove.dest.kill && (validation.finishCell.figure.isBlack != validation.startCell.figure.isBlack)) {
+				if (!validation.finishCell.figure && validation.availableMove.dest.basic) {return validation;}
+
+				if (validation.finishCell.figure && validation.availableMove.dest.kill && (validation.finishCell.figure.isBlack != validation.startCell.figure.isBlack)) {
 					validation.killMove = true;
 					return validation;
-				} else {
-					return;
 				}
+				
+				// return;
 			};
 
 			Board.prototype.makeMove = function(validation) {

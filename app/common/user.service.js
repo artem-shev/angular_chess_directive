@@ -1,6 +1,3 @@
-//currently return 2 player objects
-//in future will return constructor function 
-
 (function () {
 	'use strict';
 
@@ -11,35 +8,60 @@
 		
 	function userService(figureService) {
 		var service = {
-			constructor: User,
-			player1: {
-				isBlack: false,
-				figures: []
-			},
-			player2: {
-				isBlack: true,
-				figures: []
-			}
+			constructor: Player
 		};
 		var figures = figureService.constructors;
-		var figuresOrder = [figures.Rook, figures.Knight, figures.Bishop, figures.Queen, figures.King, figures.Bishop, figures.Knight, figures.Rook];
+		var figuresOrder = [figures.Rook, 
+							figures.Knight, 
+							figures.Bishop, 
+							figures.Queen, 
+							figures.King, 
+							figures.Bishop, 
+							figures.Knight, 
+							figures.Rook];
 
+		var isBlack = false;
 
-		init(figuresOrder);
-		function init (figuresOrder) {
-			figuresOrder.forEach(function (item, i) {
-				service.player1.figures.push(new item(service.player1, {row: 1, coll: i + 1}));
-				service.player2.figures.push(new item(service.player2, {row: 8, coll: i + 1}));
-			});
-
-			for (var i = 1; i <= 8; i++) {
-				service.player1.figures.push(new figures.Pawn (service.player1, {row: 2, coll: i}));
-				service.player2.figures.push(new figures.Pawn (service.player2, {row: 7, coll: i}));
+		function Player (name) {
+			var self = this;
+			var color;
+			if (isBlack) {
+				color = 'black';
+			} else {
+				color = 'white';
 			}
+			self.isBlack = isBlack;
+			self.name = name || (color + ' player');
+			self.figures = [];
+
+			isBlack = ! isBlack;
 		}
 
-		function User () {}
-		
+		Player.prototype.defaultStart = function() {
+			var self= this;
+			var rowPieces, rowPawn;
+			if (!self.isBlack) {
+				rowPieces = 1;
+				rowPawn = 2;
+			} else {
+				rowPieces = 8;
+				rowPawn = 7;
+			}
+
+			figuresOrder.forEach(function (Item, i) {
+				self.figures.push(new Item (self, {row: rowPieces, coll: i + 1}) )
+			});
+			for (var i = 1; i <= 8; i++) {
+				self.figures.push(new figures.Pawn (self, {row: rowPawn, coll: i}));
+			}
+		};
+
+		Player.prototype.restart = function () {
+			var self = this;
+			self.figures = [];
+			self.defaultStart();
+		}
+
 		return service;
 	}
 })();

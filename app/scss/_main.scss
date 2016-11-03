@@ -6,14 +6,29 @@
 	padding: 0;
 }
 
-body {
-	text-align: center;
-}
-
 .wrapper {
-	display: inline-block;
+	width: 26%;
+	min-width: 500px;
 	margin: 0 auto;
 	margin-top: 25vh;
+}
+
+.set {
+	margin-top: 36px;
+	float: right;
+}
+.controlls {
+	button {
+		width: 100px;
+		height: 20px;
+		margin: 5px;
+	}
+}
+
+.clearfix:after {
+	content: '';
+	display: block;
+	clear: both;
 }
 
 .row {
@@ -40,11 +55,9 @@ body {
 	border-bottom: 1px solid black;
 }
 
-
 .black-cell {
 	background-color: #b58863;
 }
-
 
 .figure {
 	width: 100%;

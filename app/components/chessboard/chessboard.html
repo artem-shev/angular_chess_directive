@@ -1,4 +1,25 @@
-<div>
+<div class="set">
+	<div class="controlls">
+		<p><button ng-click="ctrl.board.start()">Start</button></p>
+		<p><button ng-click="ctrl.board.restart()">Restart</button></p>
+	</div>	
+	<div class="info">
+		<div>
+			<div ng-if="ctrl.player1">
+				Player 1: <br>
+				name: {{ctrl.player1.name}}
+				<!-- value, time, killed figures -->
+			</div>
+			<br>
+			<div ng-if="ctrl.player2">
+				Player 2: <br>
+				name: {{ctrl.player2.name}}
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="board">
 	<div ng-repeat="row in ctrl.board.rows" class="row">
 		<div ng-repeat="cell in row.cells" class="cell" ng-class="{'black-cell': cell.black}" ng-click="ctrl.selectCell($event, cell)">
 			<img ng-if="cell.figure" ng-src="{{cell.figure.img}}" alt="" class="figure">
@@ -8,4 +29,4 @@
 			<div ng-if="cell.isSelected" class="selected"></div>
 		</div>			
 	</div>	
-</div>	
+</div>
