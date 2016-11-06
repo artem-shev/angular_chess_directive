@@ -8,11 +8,9 @@ Dependencies: AngularJS, lodash.
 
 Current features: 
 - creation of chessboard and all figures at default position;
-- move validation for most of figures;
+- move validation for all figures;
 
 In progress: 
-- move validation for castling and pawn attack in passing;
-- controls (start/restart);
 - check/mate states.
 
 Future plans: 
