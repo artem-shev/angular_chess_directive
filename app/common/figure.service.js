@@ -60,23 +60,42 @@
 				// } 
 
 				var self = this;
-				var availableMoves = []; //add info about figure to each move 
-				var moves = [];  	
+				var availableMoves = [];
 				var position = self.cordinats;	
-				var i, row, coll;
+				var i, row, coll, move;
 
 				set.movesDescr.forEach(function (dir) {
 					for (i = 1; i <= set.moveLength; i++) {
-						row = i*dir.coll + position.row;
-						coll = i*dir.row + position.coll;
+						row = i*dir.row + position.row;
+						coll = i*dir.coll + position.coll;
 
-						if (row > 0 && row <= rows && coll > 0 && coll <= colls) {
-							moves.push({
-								row: row,
-								coll: coll,
+						if (!dir.custom) {
+							move = {
+								figureId: self.id,
+								color: self.color,
+								position: position,
+								dest: {
+									row: row,
+									coll: coll
+								},
 								kill: true,
 								basic: true
-							});
+							};
+						} else {
+							move = {
+								figureId: self.id,
+								color: self.color,
+								position: position,
+								dest: {
+									row: row,
+									coll: coll
+								},
+								type: dir.custom
+							};
+						}
+
+						if (row > 0 && row <= rows && coll > 0 && coll <= colls) {
+							availableMoves.push(move);
 						}
 
 						if (!set.jump) {
@@ -86,16 +105,6 @@
 					}
 				});
 
-					_.each(moves, function (item) {
-						availableMoves.push({
-							figureId: self.id,
-							color: self.color,
-							position: position,
-							dest: item,
-							basic: item.basic,
-							kill: item.kill			
-						});
-					});
 				return availableMoves;
 			};
 
@@ -117,11 +126,11 @@
 			Pawn.prototype = Object.create(Figure.prototype);
 			Pawn.prototype.constructor = Pawn;
 
-			//if oponent pawn +2row => kill
 			Pawn.prototype.getAvailableMoves = function() {
 				var self = this;
 				var availableMoves = []; 
 				var moves = [];
+				var move; 
 				var nRow, nColl;
 				var position = self.cordinats;
 
@@ -133,23 +142,43 @@
 						nRow = -1;
 						break;
 				}
-
-				moves.push({
-					row: (1*nRow + position.row),
-					coll: (0 + position.coll),
+				//basic move (+1 row)
+				move = {
+					figureId: self.id,
+					color: self.color,
+					position: position,
+					dest: {
+						row: (1*nRow + position.row),
+						coll: (0 + position.coll)
+					},
 					kill: false,
-					basic: true
-				});
+					basic: true					
+				};
 
-				if (self.firstMove) {
-					moves.push({
-						row: (2*nRow + position.row),
-						coll:(0 + position.coll),
-						kill: false,
-						basic: true
-					});
+				if (prevalidate(move)) {
+					availableMoves.push(move);
 				}
 
+				//first move (+2 row)
+				if (self.firstMove) {
+					move = {
+						figureId: self.id,
+						color: self.color,
+						position: position,
+						dest: {
+							row: (2*nRow + position.row),
+							coll: (0 + position.coll)
+						},
+						kill: false,
+						basic: true,
+						passing: true							
+					};
+					if (prevalidate(move)) {
+						availableMoves.push(move);
+					}
+				} 
+
+				//kill move (+||- 1 coll; +1 row)
 				for (var i = 1; i <= 2; i++) {
 					switch (i) {
 						case 1: 
@@ -159,26 +188,28 @@
 							nColl = -1;
 							break;
 					};
-					moves.push({
-						row: (1*nRow + position.row),
-						coll: (1*nColl + position.coll),
+					move = {
+						figureId: self.id,
+						color: self.color,
+						position: position,
+						dest: {
+							row: (1*nRow + position.row),
+							coll: (1*nColl + position.coll)
+						},
 						kill: true,
-						basic: false
-					});	
+						basic: false							
+					};
+					if (prevalidate(move)) {
+						availableMoves.push(move);
+					}
 				}
 
-				_.each(moves, function (item) {
-					if ((item.row > 0) && (item.row <= rows) && (item.coll > 0) && (item.coll <= colls)) {
-						availableMoves.push({
-							figureId: self.id,
-							color: self.color,
-							position: position,
-							dest: item,
-							basic: item.basic,
-							kill: item.kill			
-						});
-					}
-				});
+				//check if move dont goes out of board
+				function prevalidate (move) {
+					var validRow = (move.dest.row > 0) && (move.dest.row <= rows);
+					var validColl = (move.dest.coll > 0) && (move.dest.coll <= colls);
+					if (validRow && validColl) {return true;} else {console.log('false', false);}
+				}
 
 				return availableMoves;	
 			};
@@ -354,19 +385,20 @@
 						{row: -1, coll: -1},
 						{row: -1, coll: 0},
 						{row: -1, coll: 1},
-						{row: 0, coll: 1}
+						{row: 0, coll: 1},
 					],
 					moveLength: 1,
 					jump: false
 				};
-				var availableMoves = PiecesFigures.prototype.getAvailableMoves.apply(self, [set, cells]);
 
-				/*castling
-				- check if firstMove for king and rook,
-				- check if there any available move for oponent to this cells
-				*/
+				if (self.firstMove) {
+					set.movesDescr.push(
+						{row: 0, coll: 2, custom: {name: 'castling', long: false}},
+						{row: 0, coll: -2, custom: {name: 'castling', long: true}}
+					);
+				}
 
-				return availableMoves;		
+				return PiecesFigures.prototype.getAvailableMoves.apply(self, [set, cells]);
 			};
 
 			return service;

@@ -29,6 +29,11 @@
 
 				activate();
 
+				
+				self.start();
+				// self.checkCellsLine({row: 1, coll: 1}, {row: 1, coll: 5}, true);
+
+
 				function activate () {
 					buildRows();
 					buildCells();
@@ -82,8 +87,8 @@
 								obj.rowName = row.row;
 							}
 							if (row.row === 1) {
-								obj.collName = getCollName(i+1);
-								// obj.collName = i+1;
+								// obj.collName = getCollName(i+1);
+								obj.collName = i+1;
 							}
 
 							row.cells.push(obj);
@@ -165,35 +170,161 @@
 
 			Board.prototype.validateMove = function (selectedCells) {
 				var self = this;
+
+				if(self.movesLog.length) {
+					var lastMove = self.movesLog[self.movesLog.length - 1];
+				}
+				
 				var validation = {
 					startCell: _.find(self.cells, selectedCells.position),
 					finishCell: _.find(self.cells, selectedCells.dest),
 					dest: selectedCells.dest,
 					availableMove: _.find(self.availableMoves, selectedCells)
 				};
+				var mainFigure = validation.startCell.figure;
+				var targetFigure = validation.finishCell.figure;
 
-				//check which player shall make move
+
+				// check which player shall make move
 				if ((validation.startCell.figure.isBlack && self.whiteTurn) || (!validation.startCell.figure.isBlack && !self.whiteTurn)) {return;}
 
+				//check if there any available move
 				if (!validation.availableMove) {return;} 
 
-				if (!validation.finishCell.figure && validation.availableMove.dest.basic) {return validation;}
+				//check if finish cell is empty and move can't kill
+				if (!targetFigure && validation.availableMove.basic) {
+					validation.typeOfMove = 'basic';
 
-				if (validation.finishCell.figure && validation.availableMove.dest.kill && (validation.finishCell.figure.isBlack != validation.startCell.figure.isBlack)) {
-					validation.killMove = true;
+					//passing move for pawn
+					if (validation.availableMove.passing) {
+						validation.typeOfMove = 'passing';
+						validation.passingThrow = {coll: validation.finishCell.coll};
+						if (!mainFigure.isBlack) {
+							validation.passingThrow.row = validation.finishCell.row - 1;
+						} else {
+							validation.passingThrow.row = validation.finishCell.row + 1;
+						}
+					}
 					return validation;
 				}
+
+				//check kill move: in finish cell figure; kill move; figure in finish cell is figure of oponent
+				if (targetFigure && validation.availableMove.kill && (targetFigure.isBlack != mainFigure.isBlack)) {
+					validation.typeOfMove = 'killMove';
+					return validation;
+				}
+
+				//in passing pawn attack check
+				if (lastMove && lastMove.typeOfMove === 'passing') {
+					var passingPawn = _.find(self.figures, {id: lastMove.figureId});
+					validation.secondFigure = passingPawn;
+					if (mainFigure.name === 'pawn' && validation.availableMove.kill && (mainFigure.isBlack !== passingPawn.isBlack)) {
+						var checkCell = (validation.availableMove.dest.coll === lastMove.passingThrow.coll) && (validation.availableMove.dest.row === lastMove.passingThrow.row)
+						if (checkCell) {
+							validation.typeOfMove = 'inPassingKill';
+							validation.secondFigureCell = _.find(self.cells, {figure: passingPawn});
+							return validation;
+						}
+					}
+				}
+
+				//vars for castling
+				var rookCell, oponentColor, 
+				isEmpty = true, 
+				isSafe = true;
+
+				//check castling
+				if (validation.availableMove.type && validation.availableMove.type.name === 'castling') {
+					if (mainFigure.color === 'white') {
+						oponentColor = 'black';
+					} else {
+						oponentColor = 'white';
+					}
+					//check type of castling
+					if (validation.availableMove.type.long) {
+						validation.secondFigureCell = rookCell = _.find(self.cells, {row: selectedCells.position.row, coll: selectedCells.position.coll - 4});
+					} else {
+						validation.secondFigureCell = rookCell = _.find(self.cells, {row: selectedCells.position.row, coll: selectedCells.position.coll + 3});
+					}
+
+
+					if (rookCell.figure && rookCell.figure.name === 'Rook' && rookCell.figure.firstMove) {
+						validation.secondFigure = rookCell.figure;
+						validation.typeOfMove = validation.availableMove.type;
+						if (validation.availableMove.type.long) {
+							validation.secondFigureDest = {row: rookCell.row, coll: rookCell.coll + 3};
+						} else {
+							validation.secondFigureDest = {row: rookCell.row, coll: rookCell.coll - 2};
+						}
+					} else {return;}
+
+					var cellsBetween = self.checkCellsLine(validation.startCell, rookCell, true);
+
+					cellsBetween.forEach(function (cell, i) {
+						var attack = _.find(self.availableMoves, {
+							color: oponentColor,
+							kill: true,
+							dest: {
+								row: cell.row,
+								coll: cell.coll,
+							}
+						});
+						if (validation.availableMove.type.long && i === 0) {attack = undefined;}
+						if (cell.figure) {isEmpty = false;}
+						if (attack) {isSafe = false;}
+					});
+					if (isSafe && isEmpty) {return validation;}
+				}	
+			};
+
+			Board.prototype.checkCellsLine = function (start, finish, excludeStartAndFinish) {
+				var self = this;
+				var cells = [];
+
+				var startCell = {}; 
 				
-				// return;
+				var totalRows = Math.abs(start.row - finish.row);
+				var totalColls = Math.abs(start.coll - finish.coll);
+
+				if (start.row === finish.row) {
+					startCell.row = start.row;
+					startCell.coll = Math.min(start.coll, finish.coll);
+					
+					for (var i = 0; i <= totalColls; i++ ) {
+						cells.push(_.find(self.cells, {row: startCell.row, coll: startCell.coll + i}));
+					}
+				}
+
+				if (start.coll === finish.coll) {
+					startCell.row = Math.min(start.row, finish.row);
+					startCell.coll = start.coll;
+
+					for (var i = 0; i <= totalRows; i++ ) {
+						cells.push(_.find(self.cells, {row: startCell.row + i, coll: startCell.coll}));
+					}
+				}
+
+				if (excludeStartAndFinish) {
+					cells.shift();
+					cells.pop();
+				}
+
+				// cells.forEach(function(cell) {
+				// 	cell.isSelected = true;
+				// });
+				// console.log('cells', cells);
+
+				return cells;
 			};
 
 			Board.prototype.makeMove = function(validation) {
 				var self = this;
-
+				var move = {};
+				
 				if (validation) {
 					var figure = validation.startCell.figure;
 
-					if (validation.killMove) {
+					if (validation.typeOfMove === 'killMove') {
 						validation.finishCell.figure.death();
 
 						self.removeFigure(validation.finishCell.figure);
@@ -201,11 +332,40 @@
 					}
 
 					figure.move(validation.dest);
+
+					//complicated moves (castling and in passing pawn attack)					
+					if (validation.secondFigure) {
+						if (validation.typeOfMove.name === 'castling') {
+							validation.secondFigure.move(validation.secondFigureDest);
+						}
+						if (validation.typeOfMove === 'inPassingKill') {
+							validation.secondFigure.death();
+							self.removeFigure(validation.secondFigure);
+						}
+							delete validation.secondFigureCell.figure;
+					} 
 					delete validation.startCell.figure;
+					
+					move = {
+						startCell: validation.startCell,
+						finishCell: validation.finishCell,
+						typeOfMove: validation.typeOfMove,
+						figureId: figure.id,
+						color: figure.color
+					};
+					
+					if (validation.typeOfMove === 'passing') {
+						move.passingThrow = validation.passingThrow;
+					}
+
+					self.movesLog.push(move);
 
 					self.bindFigures();
 					self.getAvailableMoves(self.cells);
 					self.whiteTurn = !self.whiteTurn;
+
+					// console.log('self.movesLog', self.movesLog);
+					// console.log('self.deadFigures', self.deadFigures);
 				}
 			};
 

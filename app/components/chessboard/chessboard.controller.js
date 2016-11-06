@@ -17,6 +17,8 @@
 		vm.board = new boardService.constructor (8, 8, vm.player1, vm.player2);
 		vm.selectCell = selectCell;
 
+// console.log('vm.board.availableMoves', vm.board.availableMoves);
+
 		function selectCell ($event, cell) {
 			if (!selectedCells.position) {
 

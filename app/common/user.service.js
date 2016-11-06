@@ -19,7 +19,6 @@
 							figures.Bishop, 
 							figures.Knight, 
 							figures.Rook];
-
 		var isBlack = false;
 
 		function Player (name) {
@@ -34,7 +33,7 @@
 			self.name = name || (color + ' player');
 			self.figures = [];
 
-			isBlack = ! isBlack;
+			isBlack = !isBlack;
 		}
 
 		Player.prototype.defaultStart = function() {
@@ -48,12 +47,12 @@
 				rowPawn = 7;
 			}
 
+			
+
 			figuresOrder.forEach(function (Item, i) {
 				self.figures.push(new Item (self, {row: rowPieces, coll: i + 1}) )
+				self.figures.push(new figures.Pawn (self, {row: rowPawn, coll: i+1}));
 			});
-			for (var i = 1; i <= 8; i++) {
-				self.figures.push(new figures.Pawn (self, {row: rowPawn, coll: i}));
-			}
 		};
 
 		Player.prototype.restart = function () {
