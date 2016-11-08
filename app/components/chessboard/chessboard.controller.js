@@ -17,8 +17,6 @@
 		vm.board = new boardService.constructor (8, 8, vm.player1, vm.player2);
 		vm.selectCell = selectCell;
 
-// console.log('vm.board.availableMoves', vm.board.availableMoves);
-
 		function selectCell ($event, cell) {
 			if (!selectedCells.position) {
 
@@ -27,10 +25,10 @@
 				startCell = cell;
 				startCell.isSelected = true;
 				selectedCells.figureId = startCell.figure.id;
-				selectedCells.position = {row: cell.row, coll: cell.coll};
+				selectedCells.position = {row: cell.row, col: cell.col};
 				return; 
 			} else {
-				selectedCells.dest = {row: cell.row, coll: cell.coll};
+				selectedCells.dest = {row: cell.row, col: cell.col};
 			}
 
 			var validation = vm.board.validateMove(selectedCells);

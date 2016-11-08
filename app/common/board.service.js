@@ -8,7 +8,7 @@
 				constructor: Board
 			};
 
-			function Board (rows, colls, player1, player2) {
+			function Board (rows, cols, player1, player2) {
 				var self = this;
 			//variables
 				var chars = getCharArr('a', 'z'),
@@ -17,7 +17,7 @@
 					i,
 					titles = {
 						rows: numbers.slice(0, rows),
-						colls: chars.slice(0, colls)
+						cols: chars.slice(0, cols)
 					};
 			//properties of board
 				self.whiteTurn = true;
@@ -28,11 +28,7 @@
 				self.deadFigures = [];
 
 				activate();
-
-				
-				self.start();
-				// self.checkCellsLine({row: 1, coll: 1}, {row: 1, coll: 5}, true);
-
+				// self.start();
 
 				function activate () {
 					buildRows();
@@ -76,19 +72,19 @@
 
 				function buildCells () {
 					self.rows.forEach(function(row) {
-						for(i = 0; i < colls; i++) {
+						for(i = 0; i < cols; i++) {
 							var obj = {
 								row: row.row,
-								coll: i+1,
+								col: i+1,
 								black: row.firstCellBlack,
-								cellName: getCollName(i+1) + row.row
+								cellName: getColName(i+1) + row.row
 							};
 							if (i === 0) {
 								obj.rowName = row.row;
 							}
 							if (row.row === 1) {
-								// obj.collName = getCollName(i+1);
-								obj.collName = i+1;
+								obj.colName = getColName(i+1);
+								// obj.colName = i+1;
 							}
 
 							row.cells.push(obj);
@@ -105,11 +101,11 @@
 					self.cells = _.flatten(self.cells); 	
 				}
 
-				function getCollName (coll) {
-					if (coll <= titles.colls.length) {
-						return titles.colls[(coll-1)];
+				function getColName (col) {
+					if (col <= titles.cols.length) {
+						return titles.cols[(col-1)];
 					} else {
-						throw new Error('unexpected number of collumns');
+						throw new Error('unexpected number of columns');
 					}
 				}
 			}
@@ -125,7 +121,7 @@
 				var self = this;
 				self.availableMoves = [];
 				_.each(self.figures, function (figure, i) {
-					self.availableMoves.push(figure.getAvailableMoves(cells));
+					self.availableMoves.push(figure.getAvailableMoves(cells));   
 
 					if (i === self.figures.length - 1) {
 						self.availableMoves = _.flatten(self.availableMoves);
@@ -147,6 +143,7 @@
 				self.figures = _.concat(self.player1.figures, self.player2.figures);
 				self.bindFigures();
 				self.getAvailableMoves(self.cells);
+				self.gameIsStarted = true;
 			};
 
 			Board.prototype.restart = function () {
@@ -198,7 +195,7 @@
 					//passing move for pawn
 					if (validation.availableMove.passing) {
 						validation.typeOfMove = 'passing';
-						validation.passingThrow = {coll: validation.finishCell.coll};
+						validation.passingThrow = {col: validation.finishCell.col};
 						if (!mainFigure.isBlack) {
 							validation.passingThrow.row = validation.finishCell.row - 1;
 						} else {
@@ -219,7 +216,7 @@
 					var passingPawn = _.find(self.figures, {id: lastMove.figureId});
 					validation.secondFigure = passingPawn;
 					if (mainFigure.name === 'pawn' && validation.availableMove.kill && (mainFigure.isBlack !== passingPawn.isBlack)) {
-						var checkCell = (validation.availableMove.dest.coll === lastMove.passingThrow.coll) && (validation.availableMove.dest.row === lastMove.passingThrow.row)
+						var checkCell = (validation.availableMove.dest.col === lastMove.passingThrow.col) && (validation.availableMove.dest.row === lastMove.passingThrow.row)
 						if (checkCell) {
 							validation.typeOfMove = 'inPassingKill';
 							validation.secondFigureCell = _.find(self.cells, {figure: passingPawn});
@@ -242,9 +239,9 @@
 					}
 					//check type of castling
 					if (validation.availableMove.type.long) {
-						validation.secondFigureCell = rookCell = _.find(self.cells, {row: selectedCells.position.row, coll: selectedCells.position.coll - 4});
+						validation.secondFigureCell = rookCell = _.find(self.cells, {row: selectedCells.position.row, col: selectedCells.position.col - 4});
 					} else {
-						validation.secondFigureCell = rookCell = _.find(self.cells, {row: selectedCells.position.row, coll: selectedCells.position.coll + 3});
+						validation.secondFigureCell = rookCell = _.find(self.cells, {row: selectedCells.position.row, col: selectedCells.position.col + 3});
 					}
 
 
@@ -252,9 +249,9 @@
 						validation.secondFigure = rookCell.figure;
 						validation.typeOfMove = validation.availableMove.type;
 						if (validation.availableMove.type.long) {
-							validation.secondFigureDest = {row: rookCell.row, coll: rookCell.coll + 3};
+							validation.secondFigureDest = {row: rookCell.row, col: rookCell.col + 3};
 						} else {
-							validation.secondFigureDest = {row: rookCell.row, coll: rookCell.coll - 2};
+							validation.secondFigureDest = {row: rookCell.row, col: rookCell.col - 2};
 						}
 					} else {return;}
 
@@ -266,7 +263,7 @@
 							kill: true,
 							dest: {
 								row: cell.row,
-								coll: cell.coll,
+								col: cell.col,
 							}
 						});
 						if (validation.availableMove.type.long && i === 0) {attack = undefined;}
@@ -284,23 +281,23 @@
 				var startCell = {}; 
 				
 				var totalRows = Math.abs(start.row - finish.row);
-				var totalColls = Math.abs(start.coll - finish.coll);
+				var totalCols = Math.abs(start.col - finish.col);
 
 				if (start.row === finish.row) {
 					startCell.row = start.row;
-					startCell.coll = Math.min(start.coll, finish.coll);
+					startCell.col = Math.min(start.col, finish.col);
 					
-					for (var i = 0; i <= totalColls; i++ ) {
-						cells.push(_.find(self.cells, {row: startCell.row, coll: startCell.coll + i}));
+					for (var i = 0; i <= totalCols; i++ ) {
+						cells.push(_.find(self.cells, {row: startCell.row, col: startCell.col + i}));
 					}
 				}
 
-				if (start.coll === finish.coll) {
+				if (start.col === finish.col) {
 					startCell.row = Math.min(start.row, finish.row);
-					startCell.coll = start.coll;
+					startCell.col = start.col;
 
 					for (var i = 0; i <= totalRows; i++ ) {
-						cells.push(_.find(self.cells, {row: startCell.row + i, coll: startCell.coll}));
+						cells.push(_.find(self.cells, {row: startCell.row + i, col: startCell.col}));
 					}
 				}
 
