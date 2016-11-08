@@ -50,8 +50,8 @@
 			
 
 			figuresOrder.forEach(function (Item, i) {
-				self.figures.push(new Item (self, {row: rowPieces, coll: i + 1}) )
-				self.figures.push(new figures.Pawn (self, {row: rowPawn, coll: i+1}));
+				self.figures.push(new Item (self, {row: rowPieces, col: i + 1}) )
+				self.figures.push(new figures.Pawn (self, {row: rowPawn, col: i+1}));
 			});
 		};
 

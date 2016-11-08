@@ -1,6 +1,6 @@
 <div class="set">
 	<div class="controlls">
-		<p><button ng-click="ctrl.board.start()">Start</button></p>
+		<p><button ng-click="ctrl.board.start()" ng-disabled="ctrl.board.gameIsStarted">Start</button></p> 
 		<p><button ng-click="ctrl.board.restart()">Restart</button></p>
 	</div>	
 	<div class="info">
