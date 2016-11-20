@@ -13,13 +13,17 @@
 					Rook: Rook,
 					Queen: Queen,
 					King: King
+				},
+				restrictions: {
+					rows: 8,
+					cols: 8
 				}
 			};
 
 			var figuresId = 1;
 			//limits to moves 
-			var rows = 8; 
-			var cols = 8;
+			var rows = service.restrictions.rows; 
+			var cols = service.restrictions.cols;
 
 			function Figure (userSet, cordinats) {
 				var self = this;
@@ -58,18 +62,23 @@
 			PiecesFigures.prototype = Object.create(Figure.prototype);
 			PiecesFigures.prototype.constructor = PiecesFigures;
 
-			PiecesFigures.prototype.getAvailableMoves = function (cells) {
+			PiecesFigures.prototype.getAvailableMoves = function (cells, checkCell, ignoreCell) {
 				var self = this;
+				if (self.isDead) {return;}
 				var set = self.moveSettings;
 				var availableMoves = [];
 				var position = self.cordinats;	
 				var i, row, col, move;
-
+				
+				if (checkCell) {}
+				
 				set.movesDescr.forEach(function (dir) {
 					for (i = 1; i <= set.moveLength; i++) {
 						row = i*dir.row + position.row;
 						col = i*dir.col + position.col;
 
+						if (row === 0 || col === 0) {break;}
+						
 						if (!dir.custom) {
 							move = {
 								figureId: self.id,
@@ -99,15 +108,28 @@
 							availableMoves.push(move);
 						}
 
-						if (!set.jump) {
-							var cell = _.find(cells, {row: row, col: col}) || {};
+						// if (!set.jump) {
+							var cell;
+							cell = _.find(cells, {row: row, col: col}) || {};						
+
+							if (ignoreCell && cell === checkCell) {continue;}
+							
+							if (checkCell && cell === checkCell && !ignoreCell) {break;}
+							
 							if (cell.figure) {break;}	
-						}	
+
+						// }	
 					}
 				});
 
 				return availableMoves;
 			};
+
+			PiecesFigures.prototype.resurect = function (cords) {
+				var self = this;
+				self.cordinats = cords;
+				delete self.isDead;
+			}
 
 			function Pawn (userSet, cordinats) {
 				var self = this;
@@ -122,40 +144,47 @@
 					self.color = 'white'
 					self.img = 'img/wP.png'
 				}
+				
+				switch (self.color) {
+					case 'white': 
+						self.moveDir = 1;
+						break;
+					case 'black': 
+						self.moveDir = -1;
+						break;
+				}
+				
+
 			}
 
 			Pawn.prototype = Object.create(Figure.prototype);
 			Pawn.prototype.constructor = Pawn;
 
-			Pawn.prototype.getAvailableMoves = function() {
+			Pawn.prototype.getAvailableMoves = function(cells) {
 				var self = this;
 				var availableMoves = []; 
 				var moves = [];
-				var move; 
-				var nRow, nCol;
+				var dir = self.moveDir; 
+				var move, nCol;
 				var position = self.cordinats;
 
-				switch (self.color) {
-					case 'white': 
-						nRow = 1;
-						break;
-					case 'black': 
-						nRow = -1;
-						break;
-				}
 				//basic move (+1 row)
 				move = {
 					figureId: self.id,
 					color: self.color,
 					position: position,
 					dest: {
-						row: (1*nRow + position.row),
+						row: (1*dir + position.row),
 						col: (0 + position.col)
 					},
 					kill: false,
 					basic: true					
 				};
 
+				if(move.dest.row === 1 || move.dest.row === rows) {
+					move.transform = true;
+				}
+				
 				if (prevalidate(move)) {
 					availableMoves.push(move);
 				}
@@ -167,7 +196,7 @@
 						color: self.color,
 						position: position,
 						dest: {
-							row: (2*nRow + position.row),
+							row: (2*dir + position.row),
 							col: (0 + position.col)
 						},
 						kill: false,
@@ -194,12 +223,15 @@
 						color: self.color,
 						position: position,
 						dest: {
-							row: (1*nRow + position.row),
+							row: (1*dir + position.row),
 							col: (1*nCol + position.col)
 						},
 						kill: true,
 						basic: false							
 					};
+					if(move.dest.row === 1 || move.dest.row === rows) {
+						move.transform = true;
+					}
 					if (prevalidate(move)) {
 						availableMoves.push(move);
 					}
@@ -350,7 +382,7 @@
 					self.color = 'white'
 					self.img = 'img/wK.png'
 				}	
-
+				self.value = 0;
 				self.moveSettings = {
 					movesDescr: [
 						{row: 1, col: 1},
@@ -361,6 +393,8 @@
 						{row: -1, col: 0},
 						{row: -1, col: 1},
 						{row: 0, col: 1},
+						{row: 0, col: 2, custom: {name: 'castling', long: false}},
+						{row: 0, col: -2, custom: {name: 'castling', long: true}}
 					],
 					moveLength: 1,
 					jump: false
@@ -372,12 +406,9 @@
 
 			King.prototype.getAvailableMoves = function(cells) {
 				var self = this;
-
-				if (self.firstMove) {
-					self.moveSettings.movesDescr.push(
-						{row: 0, col: 2, custom: {name: 'castling', long: false}},
-						{row: 0, col: -2, custom: {name: 'castling', long: true}}
-					);
+				
+				if (!self.firstMove && self.moveSettings.movesDescr.length === 10) {
+					self.moveSettings.movesDescr.splice(self.moveSettings.movesDescr.length - 2, 2)
 				}
 
 				return PiecesFigures.prototype.getAvailableMoves.apply(self, arguments);

@@ -25,8 +25,23 @@
 			<img ng-if="cell.figure" ng-src="{{cell.figure.img}}" alt="" class="figure">
 			
 			<div ng-if="cell.rowName" class="row-name">{{cell.rowName}}</div>
-			<div ng-if="cell.collName" class="coll-name">{{cell.collName}}</div>
+			<div ng-if="cell.colName" class="coll-name">{{cell.colName}}</div>
 			<div ng-if="cell.isSelected" class="selected"></div>
 		</div>			
 	</div>	
+</div>
+
+<div>
+	<p ng-repeat="move in ctrl.board.movesLog">
+	{{move.figure.name}} {{move.startCell.cellName}} ... {{move.finishCell.cellName}} - {{move.typeOfMove}} {{move.victim.name}} {{move.victim.id}}
+	</p>
+</div>
+
+<div class="figure-select" ng-if="ctrl.board.figureTransform.available">
+	<button 
+		ng-click="ctrl.board.pawnTransform(ctrl.board.figureTransform, figure)"
+		ng-repeat="figure in ctrl.board.figureTransform.player.figuresExamples"
+		class="figure-select__btn"><img ng-src="{{figure.img}}" alt="{{figure.name}}" class="figure"></button>
+
+	<span ng-click="ctrl.board.figureTransform.available = false" class="figure-select--ctrl">x</span>
 </div>

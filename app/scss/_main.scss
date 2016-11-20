@@ -7,6 +7,7 @@
 }
 
 .wrapper {
+	position: relative;
 	width: 26%;
 	min-width: 500px;
 	margin: 0 auto;
@@ -29,6 +30,10 @@
 	content: '';
 	display: block;
 	clear: both;
+}
+
+.board {
+
 }
 
 .row {
@@ -85,4 +90,24 @@
 .coll-name {
 	bottom: 0;
 	right: 0;
+}
+
+.figure-select {
+	position: absolute;
+	top: 120px;
+	left: 40px;
+	width: 240px;
+	height: 80px;
+	background-color: #d2d2d2;
+}
+
+.figure-select--ctrl {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.figure-select__btn {
+	width: 50px;
+	height: 50px;
 }
