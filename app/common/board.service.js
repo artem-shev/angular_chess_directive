@@ -27,6 +27,10 @@
 				self.figures = _.concat(self.player1.figures, self.player2.figures);
 				self.movesLog = [];
 				self.deadFigures = [];
+				self.fenInfo = {
+					halfMovesClock: 0,
+					fullMoves: 1
+				};
 
 				activate();
 				// self.start();
@@ -481,6 +485,7 @@
 				var kingCord = {row: king.cordinats.row, col: king.cordinats.col};
 //check for king is captured				
 				var isCaptured = _.find(self.availableMoves, {color: oponentColor, dest: kingCord});
+
 //check if there any available move
 				var playerMoves = _.filter(self.availableMoves, {color: color});
 				var availableMoves = [];
@@ -517,7 +522,15 @@
 						return;						
 					}
 				}
-				if (showTips) {self.hints = availableMoves;}
+				
+				if (self.fenInfo.halfMovesClock === 50) {
+					self.gameStatus = {
+						gameOver: true,
+						case: 'draw',
+						reason: 'Fifty-move rule'
+					};
+					console.log('game over', self.gameStatus)
+				}
 
 			};
 
@@ -597,7 +610,90 @@
 				self.figureTransform = undefined;			
 			};
 
+			Board.prototype.toString = function (move) {
+				var self = this;
+				var fen = '';
+				var empCounter = 0;
 
+				self.rows.forEach(function (row, iRow, rows) {
+					var length = row.cells.length;
+
+					row.cells.forEach(function(cell, i) {
+
+						if (cell.figure) {
+							if (empCounter) {
+								fen += empCounter;
+								empCounter = 0;
+							}
+							fen += cell.figure.fenName;
+						} else {
+							empCounter += 1;
+						}
+
+						if (i === length - 1) {
+							if (empCounter) {	
+								fen += empCounter;
+								empCounter = 0;
+							}
+							if (iRow !== rows.length - 1) {
+								fen += '/';
+							}
+						}
+					});
+
+					if (iRow === rows.length - 1) {
+
+						switch (self.whiteTurn) {
+							case true:
+								fen += ' w ';
+								break;
+							case false: 
+								fen += ' b ';
+								break;
+						}
+
+						self.players.forEach(function (player) {
+							var king = player.king;
+							if (king.firstMove) {
+								var castlings = '';
+
+								var cords = king.cordinats;
+								var leftRookCell = _.find(self.cells, {row: cords.row, col: cords.col - 4});
+								var rightRookCell = _.find(self.cells, {row: cords.row, col: cords.col + 3});
+
+								var leftRook = leftRookCell.figure;
+								var rightRook = rightRookCell.figure;
+
+								if (rightRook.firstMove) {
+									castlings += 'k'; 
+								}
+								if (leftRook.firstMove) {
+									castlings += 'q'
+								}
+								if (!player.isBlack) {
+									 castlings = castlings.toUpperCase();
+								}
+
+								fen += castlings;
+							}
+						});
+
+						if (move.passingThrow) {
+							var cellName = _.find(self.cells, move.passingThrow).cellName;
+							fen += ' ' + cellName;
+						} else {
+							fen += ' -';
+						}
+
+						fen += ' ' + self.fenInfo.halfMovesClock;
+
+						fen += ' ' + self.fenInfo.fullMoves;
+
+					}
+				});
+
+				return fen;
+			}
 
 
 
@@ -606,8 +702,14 @@
 				
 				if (validation) {
 					var figure = validation.startCell.figure;
+					if (figure.name === 'pawn') {
+						self.fenInfo.halfMovesClock = 0;
+					} else {
+						self.fenInfo.halfMovesClock += 1;
+					}
 
 					if (validation.typeOfMove === 'killMove') {
+						self.fenInfo.halfMovesClock = 0;
 						var victimFigure = validation.finishCell.figure;
 						victimFigure.death();
 
@@ -641,6 +743,11 @@
 
 					delete validation.startCell.figure;
 					
+					self.bindFigures();
+					self.getAvailableMoves(self.cells);
+					self.whiteTurn = !self.whiteTurn;
+					self.checkGameOverStates();					
+				
 					var move = {
 						startCell: validation.startCell,
 						finishCell: validation.finishCell,
@@ -655,13 +762,15 @@
 					if (move.typeOfMove === 'killMove') {
 						move.victim = victimFigure;
 					}
+					
+					if (validation.finishCell.figure.color === 'black') {
+						self.fenInfo.fullMoves += 1;
+					}
+
+					move.fen = self.toString(move);
 
 					self.movesLog.push(move);
 
-					self.bindFigures();
-					self.getAvailableMoves(self.cells);
-					self.whiteTurn = !self.whiteTurn;
-					self.checkGameOverStates();					
 				}
 			};
 

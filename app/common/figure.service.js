@@ -137,12 +137,17 @@
 				self.name = 'pawn';
 				self.value = 1;
 
-				if (self.isBlack) {
-					self.color = 'black'
-					self.img = 'img/bP.png';
-				} else {
-					self.color = 'white'
-					self.img = 'img/wP.png'
+				switch (self.isBlack) {
+					case true: 
+						self.color = 'black';
+						self.img = 'img/bP.png';
+						self.fenName = 'p';
+						break;
+					case false: 
+						self.color = 'white';
+						self.img = 'img/wP.png';
+						self.fenName = 'P';						
+						break;												
 				}
 				
 				switch (self.color) {
@@ -153,8 +158,6 @@
 						self.moveDir = -1;
 						break;
 				}
-				
-
 			}
 
 			Pawn.prototype = Object.create(Figure.prototype);
@@ -253,12 +256,17 @@
 				self.name = 'Bishop';
 				self.value = 3;
 
-				if (self.isBlack) {
-					self.color = 'black'
-					self.img = 'img/bB.png';
-				} else {
-					self.color = 'white'
-					self.img = 'img/wB.png'
+				switch (self.isBlack) {
+					case true: 
+						self.color = 'black';
+						self.img = 'img/bB.png';
+						self.fenName = 'b';
+						break;
+					case false: 
+						self.color = 'white';
+						self.img = 'img/wB.png';
+						self.fenName = 'B';
+						break;												
 				}
 
 				self.moveSettings = {
@@ -282,13 +290,19 @@
 				self.name = 'Knight';
 				self.value = 3;
 
-				if (self.isBlack) {
-					self.color = 'black'
-					self.img = 'img/bN.png';
-				} else {
-					self.color = 'white'
-					self.img = 'img/wN.png'
+				switch (self.isBlack) {
+					case true: 
+						self.color = 'black';
+						self.img = 'img/bN.png';
+						self.fenName = 'n';
+						break;
+					case false: 
+						self.color = 'white';
+						self.img = 'img/wN.png';
+						self.fenName = 'N';
+						break;												
 				}
+
 
 				self.moveSettings = {
 					movesDescr: [
@@ -315,12 +329,17 @@
 				self.name = 'Rook';
 				self.value = 5;
 
-				if (self.isBlack) {
-					self.color = 'black'
-					self.img = 'img/bR.png';
-				} else {
-					self.color = 'white'
-					self.img = 'img/wR.png'
+				switch (self.isBlack) {
+					case true: 
+						self.color = 'black';
+						self.img = 'img/bR.png';
+						self.fenName = 'r';
+						break;
+					case false: 
+						self.color = 'white';
+						self.img = 'img/wR.png';
+						self.fenName = 'R';
+						break;												
 				}
 
 				self.moveSettings = {
@@ -344,12 +363,17 @@
 				self.name = 'Queen';
 				self.value = 9;
 
-				if (self.isBlack) {
-					self.color = 'black'
-					self.img = 'img/bQ.png';
-				} else {
-					self.color = 'white'
-					self.img = 'img/wQ.png'
+				switch (self.isBlack) {
+					case true: 
+						self.color = 'black';
+						self.img = 'img/bQ.png';
+						self.fenName = 'q';
+						break;
+					case false: 
+						self.color = 'white';
+						self.img = 'img/wQ.png';
+						self.fenName = 'Q';
+						break;												
 				}
 
 				self.moveSettings = {
@@ -374,14 +398,20 @@
 				var self = this;
 				PiecesFigures.apply(self, arguments);
 				self.name = 'King';
+	
+				switch (self.isBlack) {
+					case true: 
+						self.color = 'black';
+						self.img = 'img/bK.png';
+						self.fenName = 'k';
+						break;
+					case false: 
+						self.color = 'white';
+						self.img = 'img/wK.png';
+						self.fenName = 'K';
+						break;												
+				}
 
-				if (self.isBlack) {
-					self.color = 'black'
-					self.img = 'img/bK.png';
-				} else {
-					self.color = 'white'
-					self.img = 'img/wK.png'
-				}	
 				self.value = 0;
 				self.moveSettings = {
 					movesDescr: [

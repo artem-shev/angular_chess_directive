@@ -73,6 +73,8 @@
 				self.figures.push(new figures.Pawn (self, {row: rowPawn, col: i+1}));
 			});
 
+			self.king = _.find(self.figures, {name: 'King'});
+			
 			// if (self.color === 'black') {
 			// 	// self.figures.push(new figures.Bishop(self, {row: 5, col: 5}));
 			// 	self.figures.push(new figures.Knight(self, {row: 6, col: 5}));
