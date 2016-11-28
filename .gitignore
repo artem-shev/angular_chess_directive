@@ -1,5 +1,7 @@
 node_modules/
 bower_components/
-tmp/
-test/
-prod/
+coverage/
+.sass-cache/
+.idea/
+.tmp/
+dist/
